@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trivia Questions</title>
+<style>
+    body {
+        background-color: black;
+        color: white;
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        text-align: center;
+    }
+
+    .question-container {
+        margin-bottom: 20px;
+    }
+</style>
+</head>
+<body>
+<div class="question-container">
+    <h1>سؤال ثقافي</h1>
+    <div id="question"></div>
+</div>
+
+<script>
+    async function translateText(text, targetLang) {
+        const apiUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+        return data[0][0][0];
+    }
+
+    async function getNewQuestion() {
+        const triviaApiUrl = `https://opentdb.com/api.php?amount=1&category=9&difficulty=medium&type=multiple`;
+        try {
+            const response = await fetch(triviaApiUrl);
+            if (!response.ok) {
+                throw new Error('فشل في جلب السؤال');
+            }
+            const data = await response.json();
+            const questionText = data.results[0].question;
+            const translatedQuestionAr = await translateText(questionText, 'ar');
+            const translatedQuestionEn = await translateText(questionText, 'en');
+            document.getElementById('question').innerHTML = `<h2>${translatedQuestionAr}</h2><h2>${translatedQuestionEn}</h2>`;
+
+            // تحويل السؤال بالإنجليزية والعربية إلى صوت
+            speak(translatedQuestionEn);
+            speak(translatedQuestionAr);
+        } catch (error) {
+            console.error('خطأ في جلب السؤال:', error);
+            document.getElementById('question').innerHTML = '<p>خطأ في جلب السؤال. الرجاء المحاولة مرة أخرى لاحقًا.</p>';
+        }
+    }
+
+    function speak(text) {
+      /*
+        const utterance = new SpeechSynthesisUtterance(text);
+
+        // اختيار الصوت (اختياري)
+        const voices = speechSynthesis.getVoices();
+        utterance.voice = voices.find(voice => voice.lang === 'en-US'); // اختيار صوت بالإنجليزية
+
+        // تشغيل الصوت
+        speechSynthesis.speak(utterance);
+        */
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        getNewQuestion();
+        setInterval(getNewQuestion, 10000); // تحديث السؤال كل 10 ثواني
+    });
+</script>
+</body>
+</html>

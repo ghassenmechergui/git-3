@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trivia Questions</title>
+</head>
+<body>
+<h1>Trivia Questions</h1>
+<ul id="questions-list"></ul>
+
+<script>
+function h(){
+  document.addEventListener("DOMContentLoaded", () => {
+    const apiUrl = 'https://opentdb.com/api.php?amount=1&type=multiple';
+    const questionsList = document.getElementById('questions-list');
+
+    fetch(apiUrl)
+        .then(response => response.json())
+        .then(data => {
+            if (data.response_code === 0) {
+                const questions = data.results;
+                questions.forEach((question, index) => {
+                    const listItem = document.createElement('li');
+                    listItem.innerHTML = `
+                        <strong>Question ${index + 1}:</strong> ${question.question}<br>
+                        <ul>
+                            ${question.incorrect_answers.map(answer => `<li>${answer}</li>`).join('')}
+                            <li><strong>Correct Answer:</strong> ${question.correct_answer}</li>
+                        </ul>
+                    `;
+                    questionsList.appendChild(listItem);
+                });
+            } else {
+                throw new Error('Failed to fetch questions');
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching questions:', error);
+            questionsList.innerHTML = '<li>Error fetching questions. Please try again later.</li>';
+        });
+});
+}
+setInterval( ()=>{
+  h()
+},1000)
+</script>
+</body>
+</html>
